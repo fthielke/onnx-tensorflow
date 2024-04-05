@@ -13,7 +13,11 @@ from onnx.backend.test.case.node import hardmax
 from onnx.backend.test.case.node.onehot import one_hot
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
+try:
+  import tensorflow_addons as tfa
+  disable_tfa = False
+except ImportError:
+  disable_tfa = True
 
 from onnx_tf.backend import onnx_graph_to_tensorflow_rep
 from onnx_tf.backend import run_node
@@ -1105,7 +1109,8 @@ class TestNode(unittest.TestCase):
 
       axis = axis if axis >= 0 else len(np.shape(x)) + axis
       if axis == len(np.shape(x)) - 1:
-        np.testing.assert_almost_equal(output["Y"], tfa.seq2seq.hardmax(x))
+        if not disable_tfa:
+          np.testing.assert_almost_equal(output["Y"], tfa.seq2seq.hardmax(x))
       else:
         if not legacy_opset_pre_ver(13):
           y = hardmax.hardmax(x, axis)
